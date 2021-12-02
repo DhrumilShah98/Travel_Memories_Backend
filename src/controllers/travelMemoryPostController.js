@@ -32,11 +32,9 @@ const s3 = new AWS.S3({
 const getTravelMemoryPosts = async () => {
     try {
         const dynamoDBParams = { TableName: "travel_memory_post" };
-        console.log(`dynamoDBParams: ${dynamoDBParams}`);
         const dynamoDBData = await dynamoDb.scan(dynamoDBParams).promise();
-        console.log(`payload: ${dynamoDBData}`);
         return {
-            message: "All Travel Memories",
+            message: "Travel Memory Posts Received Successfully",
             success: true,
             payload: dynamoDBData,
             statusCode: 200,
@@ -54,11 +52,13 @@ const getTravelMemoryPosts = async () => {
 
 const postTravelMemoryPost = async (imageFile, body) => {
     try {
+        const fileNameSplit = imageFile.filename.split(".");
+        const fileExtension = fileNameSplit[fileNameSplit.length - 1];
         const fileContent = fs.readFileSync(imageFile.path);
-        const s3Params = { Bucket: process.env.AWS_S3_BUCKET, Key: Date.now().toString(), Body: fileContent };
+        const s3Params = { Bucket: process.env.AWS_S3_BUCKET, Key: `${Date.now().toString()}.${fileExtension}`, Body: fileContent };
         const s3Data = await s3.upload(s3Params).promise();
         const travelMemoryPost = {
-            "post_id": { S: uuidv4().toString() },
+            "postId": { S: uuidv4().toString() },
             "userId": { S: body.userId },
             "postName": { S: body.postName },
             "postDescription": { S: body.postDescription },
@@ -67,7 +67,6 @@ const postTravelMemoryPost = async (imageFile, body) => {
             "postImageURL": { S: s3Data.Location.toString() },
             "createdAt": { S: new Date().toISOString() }
         };
-        console.log(travelMemoryPost);
         const dynamoDBParams = { TableName: "travel_memory_post", Item: travelMemoryPost };
         await dynamoDb.putItem(dynamoDBParams).promise();
         return {
@@ -77,7 +76,6 @@ const postTravelMemoryPost = async (imageFile, body) => {
             statusCode: 200,
         };
     } catch (error) {
-        console.log(error);
         return {
             message: "Internal Server Error",
             success: false,
@@ -90,4 +88,4 @@ const postTravelMemoryPost = async (imageFile, body) => {
 module.exports = {
     getTravelMemoryPosts,
     postTravelMemoryPost,
-}
+};

@@ -4,6 +4,8 @@ const http = require('http');
 const cors = require('cors');
 
 const travelMemoryPostRouter = require('./src/routes/travelMemoryPostRoute');
+const travelMemoryPostCommentRouter = require('./src/routes/travelMemoryPostCommentRoute');
+const travelMemoryPostRatingRouter = require('./src/routes/travelMemoryPostRatingRoute');
 
 const app = express();
 
@@ -13,6 +15,8 @@ app.use(express.urlencoded({ extended: false }));
 app.set('view engine', 'jade');
 
 app.use('/travelmemorypost', travelMemoryPostRouter);
+app.use('/travelmemorypost/comment', travelMemoryPostCommentRouter);
+app.use('/travelmemorypost/rating', travelMemoryPostRatingRouter);
 
 app.use(function (req, res, next) {
     res.status(404).send({ message: "URL not found", success: false });
